@@ -1,4 +1,4 @@
-"""Offline linear vesting calculator. All dates are UTC calendar dates."""
+"""Offline linear vesting calculator. Dates use calendar-day resolution."""
 import argparse
 import csv
 import sys
@@ -33,12 +33,16 @@ def main():
     try:
         amount = unlocked(args.total, args.start, args.end, args.as_of, args.cliff)
         if args.csv:
+            if (args.end - args.start).days > 36600:
+                raise ValueError('CSV schedules must not exceed 36,600 days')
             writer = csv.writer(sys.stdout)
             writer.writerow(['date', 'unlocked', 'locked'])
             day = args.start
             while day <= args.end:
                 value = unlocked(args.total, args.start, args.end, day, args.cliff)
                 writer.writerow([day.isoformat(), value, args.total - value])
+                if day == args.end:
+                    break
                 day += timedelta(days=1)
         else:
             print(f'Unlocked: {amount}\nLocked: {args.total - amount}')
