@@ -1,6 +1,7 @@
 """Offline linear vesting calculator. Dates use calendar-day resolution."""
 import argparse
 import csv
+import json
 import sys
 from datetime import date, timedelta
 from decimal import Decimal, InvalidOperation
@@ -46,7 +47,9 @@ def main():
     parser.add_argument('--tge-percent', type=parse_total, default=Decimal(0),
                         help='Percentage unlocked at start; the remainder vests linearly')
     parser.add_argument('--as-of', type=date.fromisoformat, default=date.today())
-    parser.add_argument('--csv', action='store_true', help='Export every daily balance to stdout')
+    output = parser.add_mutually_exclusive_group()
+    output.add_argument('--csv', action='store_true', help='Export every daily balance to stdout')
+    output.add_argument('--json', action='store_true', help='Export a single balance as JSON with decimal strings')
     args = parser.parse_args()
     try:
         amount = unlocked(args.total, args.start, args.end, args.as_of, args.cliff, args.tge_percent)
@@ -62,6 +65,9 @@ def main():
                 if day == args.end:
                     break
                 day += timedelta(days=1)
+        elif args.json:
+            print(json.dumps({'date': args.as_of.isoformat(), 'unlocked': str(amount),
+                              'locked': str(args.total - amount)}))
         else:
             print(f'Unlocked: {amount}\nLocked: {args.total - amount}')
     except (ValueError, InvalidOperation) as exc:
