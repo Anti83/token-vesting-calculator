@@ -63,8 +63,7 @@ def main():
                     break
                 day += timedelta(days=1)
         else:
-            print(f'Unlocked: {amount}
-Locked: {args.total - amount}')
+            print(f'Unlocked: {amount}\nLocked: {args.total - amount}')
     except (ValueError, InvalidOperation) as exc:
         parser.error(str(exc))
 
