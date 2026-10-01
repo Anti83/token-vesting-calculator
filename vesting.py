@@ -21,9 +21,19 @@ def unlocked(total, start, end, as_of, cliff=None):
     return total * Decimal((as_of - start).days) / Decimal((end - start).days)
 
 
+def parse_total(value):
+    try:
+        amount = Decimal(value)
+    except InvalidOperation:
+        raise argparse.ArgumentTypeError('total must be a decimal number') from None
+    if not amount.is_finite() or amount < 0:
+        raise argparse.ArgumentTypeError('total must be finite and nonnegative')
+    return amount
+
+
 def main():
     parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument('--total', required=True, type=Decimal)
+    parser.add_argument('--total', required=True, type=parse_total)
     parser.add_argument('--start', required=True, type=date.fromisoformat)
     parser.add_argument('--end', required=True, type=date.fromisoformat)
     parser.add_argument('--cliff', type=date.fromisoformat)
